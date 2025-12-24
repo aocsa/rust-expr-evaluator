@@ -87,38 +87,38 @@ impl<'a> Lexer<'a> {
             .map_err(|_| LexerError::new(format!("Invalid number: {}", num_str), start_location))
     }
 
-    pub fn next_token(&mut self) -> Result<Token, LexerError> {
+    pub fn next_token(&mut self) -> Result<(Token, Location), LexerError> {
         self.skip_whitespace();
 
         let location = self.location();
 
         match self.chars.peek() {
-            None => Ok(Token::Eof),
+            None => Ok((Token::Eof, location)),
             Some(&c) => match c {
-                '0'..='9' => Ok(Token::Number(self.read_number()?)),
+                '0'..='9' => Ok((Token::Number(self.read_number()?), location)),
                 '+' => {
                     self.advance_char();
-                    Ok(Token::Plus)
+                    Ok((Token::Plus, location))
                 }
                 '-' => {
                     self.advance_char();
-                    Ok(Token::Minus)
+                    Ok((Token::Minus, location))
                 }
                 '*' => {
                     self.advance_char();
-                    Ok(Token::Star)
+                    Ok((Token::Star, location))
                 }
                 '/' => {
                     self.advance_char();
-                    Ok(Token::Slash)
+                    Ok((Token::Slash, location))
                 }
                 '(' => {
                     self.advance_char();
-                    Ok(Token::LeftParen)
+                    Ok((Token::LeftParen, location))
                 }
                 ')' => {
                     self.advance_char();
-                    Ok(Token::RightParen)
+                    Ok((Token::RightParen, location))
                 }
                 _ => Err(LexerError::new(
                     format!("Unexpected character: '{}'", c),
@@ -137,8 +137,8 @@ mod tests {
     fn test_lexer() {
         let mut lexer = Lexer::new("2 + 2 * 2.5");
         loop {
-            let token = lexer.next_token().expect("Failed to tokenize");
-            println!("token {:?}", token);
+            let (token, location) = lexer.next_token().expect("Failed to tokenize");
+            println!("token {:?} at {:?}", token, location);
             if token == Token::Eof {
                 break;
             }
@@ -162,8 +162,8 @@ mod tests {
         let mut lexer = Lexer::new("1 +\n2");
         assert!(lexer.next_token().is_ok()); // 1
         assert!(lexer.next_token().is_ok()); // +
-        let token = lexer.next_token().unwrap();
+        let (token, location) = lexer.next_token().unwrap();
         assert_eq!(token, Token::Number(2.0));
-        assert_eq!(lexer.location().line, 2);
+        assert_eq!(location.line, 2);
     }
 }

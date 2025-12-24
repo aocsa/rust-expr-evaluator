@@ -17,19 +17,19 @@ pub struct Parser<'a> {
 impl<'a> Parser<'a> {
     pub fn new(input: &'a str) -> Result<Self, LexerError> {
         let mut lexer = Lexer::new(input);
-        let location = lexer.location();
-        let current = lexer.next_token()?;
+        let (current, current_location) = lexer.next_token()?;
         Ok(Parser {
             lexer,
             current,
-            current_location: location,
+            current_location,
         })
     }
 
     fn advance(&mut self) -> Result<Token, ParseError> {
         let prev = self.current.clone();
-        self.current_location = self.lexer.location();
-        self.current = self.lexer.next_token()?;
+        let (token, location) = self.lexer.next_token()?;
+        self.current = token;
+        self.current_location = location;
         Ok(prev)
     }
 
